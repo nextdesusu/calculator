@@ -4,13 +4,30 @@ import './Input.css';
 const Input = (props) => {
     const {
         onChange,
-        preSymbol,
+        symbol,
         initial,
+        name,
+        preSymbol,
     } = props;
+    const styleSpan = {
+        order: preSymbol ? 0 : 1,
+    }
+    const styleInput = {
+        order: preSymbol ? 1 : 0,
+    }
     return (
         <div className='input-wrapper'>
-            <span className='input-preSymbol'>{preSymbol}</span>
-            <input className='input-element' onChange={onChange} value={initial}></input>
+            <span style={styleSpan} className='input-symbol'>
+                {symbol}
+            </span>
+            <input
+                style={styleInput}
+                name={name}
+                className='input-element'
+                onChange={onChange}
+                value={initial}
+            >    
+            </input>
         </div>
     )
 }
