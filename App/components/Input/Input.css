@@ -1,0 +1,19 @@
+.input-wrapper {
+    display: grid;
+    grid-template-columns: 10% 90%;
+    width: 300px;
+    border: 1px solid rgba(128, 128, 128, 0.5);
+}
+
+.input-preSymbol {
+    font-weight: bold;
+    background-color: rgba(128, 128, 128, 0.5);
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-element {
+    padding: 0.3em;
+}
