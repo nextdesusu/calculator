@@ -18,77 +18,68 @@ import {
     TERMS_LOAN_DI,
     TERMS_LEASE_DI,
     MILEAGES_DI,
-    CREDIT_SCORE_DV,
+    CREDIT_SCORE_DI,
+    bitDepth10,
+    tabCode,
+    firstTab,
+    secondTab,
 } from './consts';
 
-const bitDepth10 = 10;
-
-const loadInt = (item) => parseInt(localStorage.getItem(item), bitDepth10);
-const getCreditScoreValue = (creditScore) => {
-    if (creditScore >= 750) {
-        return 0.95;
-    }
-    if (creditScore >= 700 && creditScore < 750) {
-        return 1;
-    }
-    if (creditScore >= 640 && creditScore < 700) {
-        return 1.05;
-    }
-    if (creditScore < 640) {
-        return 1.2;
-    }
-}
+import {
+    loadInt,
+    getCreditScoreValue,
+    getLocation,
+} from './utils';
 
 class App extends React.Component {
     constructor(props) {
         super(props);
+        const initial = 0;
         this.state = {
-            currentTab: loadInt('currentTab') || 0,
-            tradeIn: loadInt('tradeIn') || 0,
-            downPayment: loadInt('downPayment') || 0,
-            postCode: loadInt('postCode') || 0,
-            apr: loadInt('apr') || 0,
+            currentTab: loadInt('currentTab') || firstTab,
+            tradeIn: loadInt('tradeIn') || initial,
+            downPayment: loadInt('downPayment') || initial,
+            postCode: '',
+            apr: loadInt('apr') || initial,
             termsLoanId: loadInt('termsLoanId') || TERMS_LOAN_DI,
-            creditScoresLoanId: loadInt('creditScoresLoanId') || 0,
+            creditScoresLoanId: loadInt('creditScoresLoanId') || CREDIT_SCORE_DI,
             termsLeaseId: loadInt('termsLeaseId') || TERMS_LEASE_DI,
             mileagesId: loadInt('mileagesId') || MILEAGES_DI,
-            creditScoresLeaseId: loadInt('creditScoresLeaseId') || 0,
-            isCalculated: false,
-            errored: false,
+            creditScoresLeaseId: loadInt('creditScoresLeaseId') || CREDIT_SCORE_DI,
+            calculations: {
+                loan: {
+                    finished: false,
+                    value: initial,
+                },
+                lease: {
+                    finished: false,
+                    value: initial,
+                }
+            },
             infocard: {
                 isLoaded: false,
                 data: {},
-            }
+            },
+            downPaymentError: null,
+            tradeInError: null,
         }
+    }
+
+    fetchPostCode = () => {
+        getLocation()
+            .then((data) => {
+                this.setState({ postCode: data });
+            })
     }
 
     fetchInfoCardData = () => {
         return Promise.resolve(mockData)
             .then((data) => {
-                console.log('loaded', data)
                 this.setState({ infocard: {
                     isLoaded: true,
                     data,
                 }});
             });
-    }
-
-    calculate = () => {
-        Promise.resolve(this.countMonthlyPaymentLease())
-            .then((lease) => {
-                Promise.resolve(this.countMonthlyPaymentLoan())
-                    .then((loan) => {
-                        console.log('lease', lease);
-                        console.log('loan', loan)
-                    })
-            })
-    }
-
-    componentDidMount() {
-        this.fetchInfoCardData()
-            .then(() => {
-                this.calculate();
-            })
     }
 
     save = (name, value) => {
@@ -103,6 +94,7 @@ class App extends React.Component {
         if (raw === null || name === null) return;
         const index = parseInt(raw, bitDepth10);
         this.save(name, index);
+        this.calculate();
     }
 
     menuHandler = (event) => {
@@ -117,59 +109,123 @@ class App extends React.Component {
         const { target } = event;
         const name = target.getAttribute('name');
         const value = parseInt(target.value, bitDepth10);
+        console.log('input', value)
         if (name === null) return;
         if (Number.isNaN(value)) this.save(name, '');
         else this.save(name, value);
+        this.calculate();
     }
 
     countMonthlyPaymentLease = () => {
-        const {
-            tradeIn,
-            downPayment,
-            termsLeaseId,
-            creditScoresLoanId,
-            mileagesId,
-            infocard,
-        } = this.state;
-        const mileage = MILEAGES[mileagesId];
-        const term = TERMS_LEASE[termsLeaseId];
-        const creditScore = this.creditScoresList[creditScoresLoanId];
-        const creditScoreValue = getCreditScoreValue(creditScore);
-        const { msrp } = infocard.data;
-        const termMult = 10000;
-        const result = (msrp - tradeIn - downPayment) * mileage / termMult / term * creditScoreValue;
-        console.log(mileage)
-        return result;
+        return new Promise((resolve, reject) => {
+            const {
+                tradeIn,
+                downPayment,
+                termsLeaseId,
+                creditScoresLeaseId,
+                mileagesId,
+                infocard,
+            } = this.state;
+            const { msrp } = infocard.data;
+            if (!infocard.isLoaded) reject('infocard is no loaded');
+            const mileage = MILEAGES[mileagesId];
+            const term = TERMS_LEASE[termsLeaseId];
+            const creditScore = CREDIT_SCORE[creditScoresLeaseId];
+            const creditScoreValue = getCreditScoreValue(creditScore);
+            const termMult = 10000;
+            resolve((msrp - tradeIn - downPayment) * mileage / termMult / term * creditScoreValue);
+        });
     }
 
     countMonthlyPaymentLoan = () => {
+        return new Promise((resolve, reject) => {
+            const {
+                tradeIn,
+                downPayment,
+                termsLeaseId,
+                apr,
+                creditScoresLoanId,
+                infocard,
+            } = this.state;
+            const { msrp } = infocard.data;
+            if (!infocard.isLoaded) reject('infocard is not loaded');
+            const term = TERMS_LEASE[termsLeaseId];
+            const creditScore = CREDIT_SCORE[creditScoresLoanId];
+            const creditScoreValue = getCreditScoreValue(creditScore);
+            resolve((msrp - tradeIn - downPayment) * term * creditScoreValue * apr);
+        });
+    }
+
+    calculate = () => {
         const {
             tradeIn,
             downPayment,
-            termsLeaseId,
-            apr,
-            creditScoresLoanId,
             infocard,
         } = this.state;
+        if (!infocard.isLoaded) return;
         const { msrp } = infocard.data;
-        const term = TERMS_LEASE[termsLeaseId];
-        const creditScore = this.creditScoresList[creditScoresLoanId];
-        const creditScoreValue = getCreditScoreValue(creditScore);
-        const result = (msrp - tradeIn - downPayment) * term * creditScoreValue * apr;
-        return result;
+        const odf = 0.25;
+        const msrpMax = msrp * odf;
+        const message = 'payment should\'nt be more than:';
+        let errored = false;
+        const errors = {
+            downPaymentError: null,
+            tradeInError: null,
+        };
+        if (downPayment > msrpMax) {
+            errored = true;
+            errors.downPaymentError = `down payment ${message} ${msrpMax}`;
+        }
+        if (tradeIn > msrpMax) {
+            errored = true;
+            errors.tradeInError = `trade in ${message} ${msrpMax}`
+        }
+        if (errored) {
+            this.setState({ ...errors });
+            return;
+        }
+        this.countMonthlyPaymentLoan()
+            .then((valueLoan) => {
+                const loan = {
+                    finished: true,
+                    value: valueLoan,
+                };
+                this.countMonthlyPaymentLease()
+                    .then((valueLease) => {
+                        const lease = {
+                            finished: true,
+                            value: valueLease,
+                        };
+                        this.setState({
+                            calculations: {lease, loan},
+                            downPaymentError: null,
+                            tradeInError: null,
+                        });
+                    })
+            });
     }
 
-    get creditScoresList() {
-        const {
-            from,
-            to,
-            step,
-        } = CREDIT_SCORE;
-        const list = [];
-        for (let cs = from; cs < to; cs += step) {
-            list.push(cs);
-        }
-        return list;
+    componentDidMount() {
+        this.fetchInfoCardData()
+            .then(() => {
+                this.calculate();
+            })
+            .then(() => {
+                this.fetchPostCode();
+            })
+            .then(() => {
+                document.addEventListener('keydown', (event) => {
+                    if (event.keyCode ===  tabCode){
+                        event.preventDefault();
+                        const { currentTab } = this.state;
+                        if (currentTab === firstTab){
+                            this.setState({ currentTab: secondTab });
+                        } else {
+                            this.setState({ currentTab: firstTab });
+                        }
+                    }
+                })
+            })
     }
 
     render() {
@@ -184,16 +240,29 @@ class App extends React.Component {
             termsLeaseId,
             mileagesId,
             creditScoresLeaseId,
+            calculations,
             infocard,
+            downPaymentError,
+            tradeInError,
         } = this.state;
         const {
             isLoaded,
             data
         } = infocard;
         const { msrp } = data;
+        const {
+            loan,
+            lease,
+        } = calculations;
+        const odf = 0.25;
+        const msrpMax = msrp * odf;
         return(
             <div>
-                <Menu changeTab={this.menuHandler} onTab={currentTab} tabList={['loan', 'lease']}>
+                <Menu
+                    changeTab={this.menuHandler}
+                    onTab={currentTab}
+                    tabList={['loan', 'lease']}
+                >
                     <div className='menu-common'>
                         <Input
                             name='downPayment'
@@ -201,8 +270,9 @@ class App extends React.Component {
                             value={downPayment}
                             symbol='$'
                             preSymbol={true}
-                            max={isLoaded ? msrp * 0.25 : undefined}
-                            errorText='value bigger than msrp!'
+                            max={isLoaded ? msrpMax : undefined}
+                            errorName={'downPaymentError'}
+                            errorText={downPaymentError ? downPaymentError : undefined}
                         />
                         <Input
                             name='tradeIn'
@@ -210,8 +280,9 @@ class App extends React.Component {
                             value={tradeIn}
                             symbol='$'
                             preSymbol={true}
-                            max={isLoaded ? msrp * 0.25 : undefined}
-                            errorText='value bigger than msrp!'
+                            max={isLoaded ? msrpMax : undefined}
+                            errorName={'tradeInError'}
+                            errorText={tradeInError ? tradeInError : undefined}
                         />
                     </div>
                     <div className='menu-loan'>
@@ -228,6 +299,7 @@ class App extends React.Component {
                             value={postCode}
                             symbol='p'
                             preSymbol={false}
+                            type='text'
                         />
                         <ButtonsRow
                             name='termsLoanId'
@@ -240,9 +312,10 @@ class App extends React.Component {
                             name='creditScoresLoanId'
                             text='your credit score'
                             onClick={this.RowHandler}
-                            data={this.creditScoresList}
+                            data={CREDIT_SCORE}
                             highlited={creditScoresLoanId}
                         />
+                        <span>loan: <span>{loan.finished && loan.value}</span></span>
                     </div>
                     <div className='menu-lease'>
                         <SelectRow 
@@ -263,9 +336,10 @@ class App extends React.Component {
                             text='your credit score'
                             name='creditScoresLeaseId'
                             onChange={this.RowHandler}
-                            data={this.creditScoresList}
+                            data={CREDIT_SCORE}
                             highlited={creditScoresLeaseId}
                         />
+                        <span>lease: <span>{lease.finished && lease.value}</span></span>
                     </div>
                 </Menu>
                 <InfoCard data={infocard}/>

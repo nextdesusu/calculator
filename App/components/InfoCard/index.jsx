@@ -45,7 +45,7 @@ const InfoCard = (props) => {
     }
     return (
         <section className='InfoCard'>
-            {isLoaded ? getLoadedTemplate() : <p>loading</p>}
+            {isLoaded ? getLoadedTemplate() : <div className='spinner'></div>}
         </section>
     )
 }

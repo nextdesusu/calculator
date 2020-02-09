@@ -14,14 +14,14 @@ export default function Menu(props) {
         <section className='menu'>
             <div className='menu-header' onClick={changeTab}>
                 {
-                    tabList.map((tabName, i) => {
+                    tabList.map((tabData, i) => {
                         return (
                             <button
                                 key={i}
                                 className={`menu-tab${onTab === i ? 'menu-tab-highlited' : ''}`}
                                 data-index={i}
                             >
-                                {tabName}
+                                {tabData}
                             </button>
                         )
                     })

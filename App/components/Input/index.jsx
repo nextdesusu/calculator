@@ -10,7 +10,6 @@ const Input = (props) => {
         preSymbol,
         type,
         max,
-        errorHandler,
         errorText,
     } = props;
     const styleSpan = {
@@ -19,13 +18,6 @@ const Input = (props) => {
     const styleInput = {
         order: preSymbol ? 1 : 0,
     }
-    let errored = false;
-    if (errorHandler !== undefined && value > max) {
-        errored = true;
-    }
-    console.log(
-        'max is', max
-    )
     return (
         <div>
             <div className='input-wrapper'>
@@ -40,10 +32,10 @@ const Input = (props) => {
                     value={value}
                     type={type ? type : 'number'}
                     max={max}
-                >    
+                >
                 </input>
             </div>
-            {errored && <span>{errorText}</span>}
+            {errorText && <span>{errorText}</span>}
         </div>
     )
 }
