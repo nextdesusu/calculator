@@ -1,3 +1,21 @@
+ul {
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+#calculator {
+  margin: auto auto;
+  width: 80%;
+  height: 80%;
+}
+
+.calculator-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 4em;
+}
+
 .spinner {
   display: inline-block;
   width: 1em;

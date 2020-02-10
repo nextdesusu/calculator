@@ -35,7 +35,11 @@ const Input = (props) => {
                 >
                 </input>
             </div>
-            {errorText && <span>{errorText}</span>}
+            <span
+                className={`input-error ${errorText && 'input-error-visible'}`}
+            >
+                {errorText ? errorText : 'ok!'}
+            </span>
         </div>
     )
 }

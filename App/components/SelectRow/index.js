@@ -11,22 +11,30 @@ export default function SelectRow(props) {
     } = props;
     return (
         <div className='SelectRow'>
-            <span>{text}</span>
-            {data.map((val, i) => {
-                return (
-                    <div key={i}>
-                        <input
-                            onChange={onChange}
-                            type='radio'
-                            name={name}
-                            data-index={i}
-                            checked={highlited === i}
+            <div className='SelectRow-header-wrapper'>
+                <h2 className='SelectRow-header'>{text}</h2>
+            </div>
+            <div className='SelectRow-main'>
+                {data.map((val, i) => {
+                    return (
+                        <label
+                            key={i}
+                            className={`SelectRow-container${highlited === i ? ' container-highlited' : ''}`}
                         >
-                        </input>
-                        <span>{val}</span>
-                    </div>
-                )
-            })}
+                            <input
+                                className='SelectRow-checkbox'
+                                onChange={onChange}
+                                type='radio'
+                                name={name}
+                                data-index={i}
+                                checked={highlited === i}
+                            >
+                            </input>
+                            <span className='checkmark'>{val}</span>
+                        </label>
+                    )
+                })}
+            </div>
         </div>
     )
 }

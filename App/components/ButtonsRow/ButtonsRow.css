@@ -1,3 +1,33 @@
-.ButtonsRow-highlited {
+.ButtonsRow-main {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.ButtonsRow-header {
+    padding: 0px;
+    margin: 0px;
+    text-transform: capitalize;
+    font-size: 1.5em;
+    color: rgba(9, 20, 51, 0.767);
+}
+
+.ButtonsRow-button {
+    background-color: rgba(0, 0, 255, 0.5);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 0.3em;
+    padding: 0.3em;
+    width: 5em;
+    height: 2em;
+    cursor: pointer;
+}
+
+.ButtonsRow-button:hover {
     text-decoration: underline;
+}
+
+.ButtonsRow-highlited {
+    background-color: blue;
 }

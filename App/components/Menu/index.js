@@ -18,7 +18,7 @@ export default function Menu(props) {
                         return (
                             <button
                                 key={i}
-                                className={`menu-tab${onTab === i ? 'menu-tab-highlited' : ''}`}
+                                className={`menu-tab${onTab === i ? ' menu-tab-highlited' : ''}`}
                                 data-index={i}
                             >
                                 {tabData}

@@ -109,7 +109,6 @@ class App extends React.Component {
         const { target } = event;
         const name = target.getAttribute('name');
         const value = parseInt(target.value, bitDepth10);
-        console.log('input', value)
         if (name === null) return;
         if (Number.isNaN(value)) this.save(name, '');
         else this.save(name, value);
@@ -165,8 +164,8 @@ class App extends React.Component {
         if (!infocard.isLoaded) return;
         const { msrp } = infocard.data;
         const odf = 0.25;
-        const msrpMax = msrp * odf;
-        const message = 'payment should\'nt be more than:';
+        const msrpMax = msrp / odf;
+        const message = 'payment should\'nt be bigger than:';
         let errored = false;
         const errors = {
             downPaymentError: null,
@@ -174,11 +173,11 @@ class App extends React.Component {
         };
         if (downPayment > msrpMax) {
             errored = true;
-            errors.downPaymentError = `down payment ${message} ${msrpMax}`;
+            errors.downPaymentError = `down payment ${message} ${msrpMax}$`;
         }
         if (tradeIn > msrpMax) {
             errored = true;
-            errors.tradeInError = `trade in ${message} ${msrpMax}`
+            errors.tradeInError = `trade in ${message} ${msrpMax}$`
         }
         if (errored) {
             this.setState({ ...errors });
@@ -218,11 +217,8 @@ class App extends React.Component {
                     if (event.keyCode ===  tabCode){
                         event.preventDefault();
                         const { currentTab } = this.state;
-                        if (currentTab === firstTab){
-                            this.setState({ currentTab: secondTab });
-                        } else {
-                            this.setState({ currentTab: firstTab });
-                        }
+                        const tab = currentTab === firstTab ? secondTab : firstTab;
+                        this.save('currentTab',  tab);
                     }
                 })
             })
@@ -255,9 +251,9 @@ class App extends React.Component {
             lease,
         } = calculations;
         const odf = 0.25;
-        const msrpMax = msrp * odf;
+        const msrpMax = msrp / odf;
         return(
-            <div>
+            <div className='calculator-container'>
                 <Menu
                     changeTab={this.menuHandler}
                     onTab={currentTab}
@@ -315,7 +311,9 @@ class App extends React.Component {
                             data={CREDIT_SCORE}
                             highlited={creditScoresLoanId}
                         />
-                        <span>loan: <span>{loan.finished && loan.value}</span></span>
+                        <span className='menu-info'>
+                            loan: <span>{loan.finished && loan.value}</span>
+                        </span>
                     </div>
                     <div className='menu-lease'>
                         <SelectRow 
@@ -339,7 +337,9 @@ class App extends React.Component {
                             data={CREDIT_SCORE}
                             highlited={creditScoresLeaseId}
                         />
-                        <span>lease: <span>{lease.finished && lease.value}</span></span>
+                        <span className='menu-info'>
+                            lease: <span>{lease.finished && lease.value}</span>
+                        </span>
                     </div>
                 </Menu>
                 <InfoCard data={infocard}/>
