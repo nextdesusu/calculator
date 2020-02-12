@@ -18,6 +18,10 @@ const Input = (props) => {
     const styleInput = {
         order: preSymbol ? 1 : 0,
     }
+    const clear = (event) => {
+        const { target } = event;
+        if (target.value === '0') event.target.value = '';
+    }
     return (
         <div>
             <div className='input-wrapper'>
@@ -25,6 +29,7 @@ const Input = (props) => {
                     {symbol}
                 </span>
                 <input
+                    onFocus={clear}
                     style={styleInput}
                     name={name}
                     className='input-element'

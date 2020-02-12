@@ -75,10 +75,12 @@ class App extends React.Component {
     fetchInfoCardData = () => {
         return Promise.resolve(mockData)
             .then((data) => {
-                this.setState({ infocard: {
-                    isLoaded: true,
-                    data,
-                }});
+                this.setState({
+                    infocard: {
+                        isLoaded: true,
+                        data,
+                    }
+                });
             });
     }
 
@@ -115,6 +117,11 @@ class App extends React.Component {
         this.calculate();
     }
 
+    postCodeHandler = (event) => {
+        const { target } = event;
+        this.save('postCode', target.value);
+    }
+
     countMonthlyPaymentLease = () => {
         return new Promise((resolve, reject) => {
             const {
@@ -126,7 +133,7 @@ class App extends React.Component {
                 infocard,
             } = this.state;
             const { msrp } = infocard.data;
-            if (!infocard.isLoaded) reject('infocard is no loaded');
+            if (!infocard.isLoaded) reject('infocard is not loaded');
             const mileage = MILEAGES[mileagesId];
             const term = TERMS_LEASE[termsLeaseId];
             const creditScore = CREDIT_SCORE[creditScoresLeaseId];
@@ -196,7 +203,7 @@ class App extends React.Component {
                             value: valueLease,
                         };
                         this.setState({
-                            calculations: {lease, loan},
+                            calculations: { lease, loan },
                             downPaymentError: null,
                             tradeInError: null,
                         });
@@ -205,23 +212,25 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchInfoCardData()
+        const loadTime = 100;
+        setTimeout(() => {
+            //to demonstrate the spinner
+            this.fetchInfoCardData()
             .then(() => {
                 this.calculate();
             })
             .then(() => {
                 this.fetchPostCode();
             })
-            .then(() => {
-                document.addEventListener('keydown', (event) => {
-                    if (event.keyCode ===  tabCode){
-                        event.preventDefault();
-                        const { currentTab } = this.state;
-                        const tab = currentTab === firstTab ? secondTab : firstTab;
-                        this.save('currentTab',  tab);
-                    }
-                })
-            })
+        }, loadTime)
+        document.addEventListener('keydown', (event) => {
+            if (event.keyCode === tabCode) {
+                event.preventDefault();
+                const { currentTab } = this.state;
+                const tab = currentTab === firstTab ? secondTab : firstTab;
+                this.save('currentTab', tab);
+            }
+        })
     }
 
     render() {
@@ -252,7 +261,9 @@ class App extends React.Component {
         } = calculations;
         const odf = 0.25;
         const msrpMax = msrp / odf;
-        return(
+        const pMult = 11;
+        const taxesList = postCode ? postCode.split('').map((num) => num * pMult) : [];
+        return (
             <div className='calculator-container'>
                 <Menu
                     changeTab={this.menuHandler}
@@ -291,7 +302,7 @@ class App extends React.Component {
                         />
                         <Input
                             name='postCode'
-                            onChange={this.inputHandler}
+                            onChange={this.postCodeHandler}
                             value={postCode}
                             symbol='p'
                             preSymbol={false}
@@ -316,21 +327,21 @@ class App extends React.Component {
                         </span>
                     </div>
                     <div className='menu-lease'>
-                        <SelectRow 
+                        <SelectRow
                             text='terms lease'
                             name='termsLeaseId'
                             onChange={this.RowHandler}
                             data={TERMS_LEASE}
                             highlited={termsLeaseId}
                         />
-                        <SelectRow 
+                        <SelectRow
                             text='mileages'
                             name='mileagesId'
                             onChange={this.RowHandler}
                             data={MILEAGES}
                             highlited={mileagesId}
                         />
-                        <SelectRow 
+                        <SelectRow
                             text='your credit score'
                             name='creditScoresLeaseId'
                             onChange={this.RowHandler}
@@ -342,7 +353,7 @@ class App extends React.Component {
                         </span>
                     </div>
                 </Menu>
-                <InfoCard data={infocard}/>
+                <InfoCard taxesList={taxesList} data={infocard} />
             </div>
         )
     }

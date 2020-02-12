@@ -1,3 +1,28 @@
+.InfoCard {
+    display: grid;
+    grid-template-rows: repeat(3, auto);
+    grid-gap: 1em;
+    font-size: 1.3em;;
+    width: 30em;
+}
+
 .InfoCard-list {
     list-style: none;
+}
+
+.InfoCard-list > li {
+    text-transform: capitalize;
+}
+
+.InfoCard-list-taxes {
+    display: flex;
+    flex-direction: row;
+}
+
+.InfoCard-list-taxes > li {
+    margin-right: 0.3em;
+}
+
+.money {
+    color: green;
 }

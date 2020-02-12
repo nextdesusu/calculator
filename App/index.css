@@ -1,19 +1,35 @@
+body {
+  background-color: rgba(128, 128, 128, 0.123);
+}
+
 ul {
   list-style: none;
+}
+
+li, ul, ol {
   padding: 0px;
   margin: 0px;
 }
 
+h2 {
+  padding: 0px;
+  margin: 0px;
+  text-transform: capitalize;
+  font-size: 1.5em;
+  color: rgba(9, 20, 51, 0.767);
+}
+
 #calculator {
   margin: auto auto;
-  width: 80%;
-  height: 80%;
 }
 
 .calculator-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 4em;
+  display: flex;
+  justify-content: flex-start;
+}
+
+section {
+  margin-right: 1em;
 }
 
 .spinner {

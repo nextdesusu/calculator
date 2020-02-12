@@ -1,11 +1,10 @@
 const mockData = {
     msrp: 42818,
-    vName: 'Toyota Mega Cruiser',
+    vName: 'toyota mega cruiser',
     monthlyPayment: 683,
-    taxesList: [0, 1, 2],
-    dName: 'name',
+    dName: 'semenov boris vasil\'evich',
     dNumber: 8559772913,
-    dRating: 1,
+    dRating: 4,
 };
 
 export default mockData;
